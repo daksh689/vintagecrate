@@ -87,6 +87,7 @@ def download_and_index(search_query: str):
         try:
             results = ydl.extract_info(f"ytsearch15:{search_query}", download=False)
             entries = results.get('entries', []) if isinstance(results, dict) else []
+            print(f"[yt-dlp] Search for '{search_query}' returned {len(entries)} results")
 
             target_entry = None
             for entry in entries:
@@ -151,8 +152,10 @@ def download_and_index(search_query: str):
                 ydl_opts_down['cookiefile'] = cookies_path
 
             with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
-                url = target_entry.get('url') or target_entry.get('webpage_url')
-                ydl_down.download([url])
+                # With extract_flat, we only have the video ID - construct full URL
+                download_url = f"https://www.youtube.com/watch?v={video_id}"
+                print(f"[yt-dlp] Downloading from: {download_url}")
+                ydl_down.download([download_url])
 
             with db_lock:
                 conn = get_db_connection()
