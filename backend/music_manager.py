@@ -59,12 +59,19 @@ def clean_title(title):
 def download_and_index(search_query: str):
     init_db()
 
+    # Resolve cookies path
+    cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+    if not os.path.exists(cookies_path):
+        cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
+        
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
         'extract_flat': True
     }
+    if os.path.exists(cookies_path):
+        ydl_opts['cookiefile'] = cookies_path
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -123,6 +130,8 @@ def download_and_index(search_query: str):
                 'outtmpl': f"{file_path_base}.%(ext)s",
                 'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
             }
+            if os.path.exists(cookies_path):
+                ydl_opts_down['cookiefile'] = cookies_path
 
             with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
                 url = target_entry.get('url') or target_entry.get('webpage_url')
