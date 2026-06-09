@@ -65,7 +65,6 @@ def download_and_index(search_query: str):
         cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
         
     ydl_opts = {
-        'format': 'bestaudio*/best*',
         'quiet': False,
         'no_warnings': False,
         'extract_flat': True,
@@ -137,7 +136,6 @@ def download_and_index(search_query: str):
             final_file_path = f"{file_path_base}.mp3"
 
             ydl_opts_down = {
-                'format': 'bestaudio*/best*',
                 'outtmpl': f"{file_path_base}.%(ext)s",
                 'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
                 'geo_bypass': True,
