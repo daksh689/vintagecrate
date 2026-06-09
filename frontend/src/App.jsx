@@ -3,7 +3,7 @@ import { Play, Pause, SkipForward, SkipBack, Search, Music, Loader2,
          Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat } from 'lucide-react';
 import './index.css';
 
-const API = import.meta.env.VITE_API_URL || 'https://alberta-sterling-director-organization.trycloudflare.com/api';
+const API = import.meta.env.VITE_API_URL || 'https://vintagecrate.onrender.com/api';
 
 const clean = (t) => t
   .replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '')
@@ -371,7 +371,7 @@ export default function App() {
           <div className="sidebar-header">
             <div className="brand">
               <div className="brand-icon"><Plus size={13} color="white" /></div>
-              <span className="brand-name">AI Agent</span>
+              <span className="brand-name">VintageCrate</span>
               <button className="home-btn" onClick={() => setIsLightMode(!isLightMode)} title="Toggle Theme" style={{ marginRight: '6px' }}>
                 {isLightMode ? <Moon size={14} /> : <Sun size={14} />}
               </button>
