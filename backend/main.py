@@ -89,23 +89,34 @@ def debug_info(query: str = None):
     }
 
     if query:
-        ydl_opts = {
-            'quiet': False,
-            'extract_flat': True,
-            'socket_timeout': 10,
-        }
-        cookies_path = os.path.join(backend_dir, "www.youtube.com_cookies.txt")
-        if os.path.exists(cookies_path):
-            ydl_opts['cookiefile'] = cookies_path
-            
+        from ytmusicapi import YTMusic
+        import yt_dlp
+        
+        # Test ytmusicapi
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                results = ydl.extract_info(f"ytsearch3:{query}", download=False)
-                entries = results.get('entries', []) if isinstance(results, dict) else []
-                debug_data["yt_dlp_test"] = f"Found {len(entries)} entries"
-                debug_data["yt_dlp_entries"] = entries
+            ytmusic = YTMusic()
+            search_results = ytmusic.search(query, filter="songs")
+            debug_data["ytmusic_test"] = f"Found {len(search_results)} results"
+            debug_data["ytmusic_first_result"] = search_results[0] if search_results else None
+            
+            if search_results:
+                video_id = search_results[0].get('videoId')
+                # Test yt-dlp with the video_id
+                ydl_opts = {
+                    'quiet': False,
+                    'extract_flat': True,
+                    'socket_timeout': 10,
+                    'extractor_args': {'youtube': ['player_client=android,ios']},
+                }
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        results = ydl.extract_info(f"https://music.youtube.com/watch?v={video_id}", download=False)
+                        debug_data["yt_dlp_extract_test"] = "Success"
+                except Exception as e:
+                    debug_data["yt_dlp_extract_error"] = str(e)
+                    
         except Exception as e:
-            debug_data["yt_dlp_error"] = str(e)
+            debug_data["ytmusic_error"] = str(e)
             
     return debug_data
 
