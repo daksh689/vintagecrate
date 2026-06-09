@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
-yt-dlp
+yt-dlp>=2025.1.1
 js2py
