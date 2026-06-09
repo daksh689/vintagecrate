@@ -8,6 +8,11 @@ import os
 # Resolve BASE_DIR as the project root (one level up from backend/)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+# Prepend local bin folder to PATH so yt-dlp finds portable node binary
+bin_path = os.path.join(os.path.dirname(__file__), "bin")
+if os.path.exists(bin_path):
+    os.environ["PATH"] = bin_path + os.pathsep + os.environ.get("PATH", "")
+
 def resolve_file_path(fp: str) -> str:
     """Handle both absolute and relative file paths from the DB."""
     if os.path.isabs(fp):
