@@ -172,6 +172,8 @@ def download_and_index(search_query: str):
             if new_id:
                 return new_id
             return None
+        except Exception as e:
+            raise e
 
 def get_all_tracks():
     init_db()
