@@ -59,15 +59,70 @@ def clean_title(title):
 def download_and_index(search_query: str):
     init_db()
 
-    # Resolve cookies path
-    cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
-    if not os.path.exists(cookies_path):
-        cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
+    # 1. Search using ytmusicapi (fast and avoids bot detection blocks on Render)
+    from ytmusicapi import YTMusic
+    ytmusic = YTMusic()
+    try:
+        search_results = ytmusic.search(search_query, filter="songs")
+    except Exception as e:
+        print(f"[ytmusicapi] Search error: {e}")
+        return None
+
+    if not search_results:
+        print(f"[ytmusicapi] No results found for '{search_query}'")
+        return None
+
+    # Find the best valid result (typically the first one)
+    target_video_id = None
+    target_title = None
+    for result in search_results:
+        duration_seconds = result.get('duration_seconds', 0)
+        if duration_seconds and duration_seconds > 360:
+            continue
         
-    ydl_opts = {
-        'quiet': False,
-        'no_warnings': False,
-        'extract_flat': True,
+        target_video_id = result.get('videoId')
+        if not target_video_id:
+            continue
+            
+        target_title = result.get('title', '')
+        break
+        
+    if not target_video_id:
+        print(f"[ytmusicapi] No valid tracks found under 6 minutes for '{search_query}'")
+        return None
+
+    c_title = clean_title(target_title)
+
+    # 2. Check if we already have this specific video downloaded
+    with db_lock:
+        conn = get_db_connection()
+        row = conn.execute("SELECT id FROM tracks WHERE file_path LIKE ?", (f"%{target_video_id}%",)).fetchone()
+        all_tracks = conn.execute("SELECT id, title FROM tracks").fetchall()
+        conn.close()
+
+    if row:
+        return row[0]
+        
+    found_dup_id = None
+    if c_title and len(c_title) > 2:
+        for t_id, t_title in all_tracks:
+            if c_title == clean_title(t_title):
+                found_dup_id = t_id
+                break
+    
+    if found_dup_id:
+        return found_dup_id
+
+    # 3. Download the specific video ID using yt-dlp
+    video_id = target_video_id
+    safe_title = yt_dlp.utils.sanitize_filename(target_title)
+    filename_base = f"{safe_title} [{video_id}]"
+    file_path_base = os.path.abspath(os.path.join(SAVE_DIR, filename_base))
+    final_file_path = f"{file_path_base}.mp3"
+
+    ydl_opts_down = {
+        'outtmpl': f"{file_path_base}.%(ext)s",
+        'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
         'geo_bypass': True,
         'socket_timeout': 30,
         'retries': 3,
@@ -76,104 +131,36 @@ def download_and_index(search_query: str):
             'Accept-Language': 'en-US,en;q=0.9',
         },
     }
+    
+    cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+    if not os.path.exists(cookies_path):
+        cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
     if os.path.exists(cookies_path):
-        ydl_opts['cookiefile'] = cookies_path
-        print(f"[yt-dlp] Using cookies from: {cookies_path}")
-    else:
-        print(f"[yt-dlp] No cookies file found, proceeding without cookies")
+        ydl_opts_down['cookiefile'] = cookies_path
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            results = ydl.extract_info(f"ytsearch15:{search_query}", download=False)
-            entries = results.get('entries', []) if isinstance(results, dict) else []
-            print(f"[yt-dlp] Search for '{search_query}' returned {len(entries)} results")
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
+            download_url = f"https://www.youtube.com/watch?v={video_id}"
+            print(f"[yt-dlp] Downloading from: {download_url}")
+            ydl_down.download([download_url])
 
-            target_entry = None
-            for entry in entries:
-                if not isinstance(entry, dict):
-                    continue
-                    
-                duration = entry.get('duration', 0)
-                if duration and duration > 360:
-                    continue
-
-                video_id = entry.get('id')
-                if not video_id:
-                    continue
-
-                title = entry.get('title', '')
-                c_title = clean_title(title)
-
-                with db_lock:
-                    conn = get_db_connection()
-                    row = conn.execute("SELECT id FROM tracks WHERE file_path LIKE ?", (f"%{video_id}%",)).fetchone()
-                    all_tracks = conn.execute("SELECT id, title FROM tracks").fetchall()
-                    conn.close()
-
-                if row:
-                    return row[0]
-                    
-                found_dup_id = None
-                if c_title and len(c_title) > 2:
-                    for t_id, t_title in all_tracks:
-                        if c_title == clean_title(t_title):
-                            found_dup_id = t_id
-                            break
-                
-                if found_dup_id:
-                    return found_dup_id
-
-                target_entry = entry
-                break
-
-            if not target_entry:
-                return None
-
-            video_id = target_entry.get('id')
-            safe_title = yt_dlp.utils.sanitize_filename(target_entry.get('title'))
-            filename_base = f"{safe_title} [{video_id}]"
-            file_path_base = os.path.abspath(os.path.join(SAVE_DIR, filename_base))
-            final_file_path = f"{file_path_base}.mp3"
-
-            ydl_opts_down = {
-                'outtmpl': f"{file_path_base}.%(ext)s",
-                'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
-                'geo_bypass': True,
-                'socket_timeout': 30,
-                'retries': 3,
-                'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                },
-            }
-            if os.path.exists(cookies_path):
-                ydl_opts_down['cookiefile'] = cookies_path
-
-            with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
-                # With extract_flat, we only have the video ID - construct full URL
-                download_url = f"https://www.youtube.com/watch?v={video_id}"
-                print(f"[yt-dlp] Downloading from: {download_url}")
-                ydl_down.download([download_url])
-
-
-
-            with db_lock:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                try:
-                    cursor.execute("INSERT INTO tracks (title, file_path, play_count) VALUES (?, ?, 0)", (safe_title, final_file_path))
-                    conn.commit()
-                    new_id = cursor.lastrowid
-                except sqlite3.IntegrityError:
-                    new_id = None
-                    print(f"Track already exists in DB: {safe_title}")
-                conn.close()
-                
-            if new_id:
-                return new_id
-            return None
-        except Exception as e:
-            raise e
+        with db_lock:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            try:
+                cursor.execute("INSERT INTO tracks (title, file_path, play_count) VALUES (?, ?, 0)", (safe_title, final_file_path))
+                conn.commit()
+                new_id = cursor.lastrowid
+            except sqlite3.IntegrityError:
+                new_id = None
+                print(f"Track already exists in DB: {safe_title}")
+            conn.close()
+            
+        if new_id:
+            return new_id
+        return None
+    except Exception as e:
+        raise e
 
 def get_all_tracks():
     init_db()
