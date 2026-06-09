@@ -66,6 +66,33 @@ app.add_middleware(
 class SearchRequest(BaseModel):
     query: str
 
+@app.get("/api/debug")
+def debug_info():
+    import shutil, subprocess
+    node_path = shutil.which("node")
+    ffmpeg_path = shutil.which("ffmpeg")
+    node_version = None
+    if node_path:
+        try:
+            node_version = subprocess.check_output([node_path, "--version"], timeout=5).decode().strip()
+        except Exception as e:
+            node_version = f"error: {e}"
+    
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    dir_contents = os.listdir(backend_dir)
+    bin_contents = os.listdir(os.path.join(backend_dir, "bin")) if os.path.exists(os.path.join(backend_dir, "bin")) else []
+    
+    return {
+        "node_path": node_path,
+        "node_version": node_version,
+        "ffmpeg_path": ffmpeg_path,
+        "PATH": os.environ.get("PATH", ""),
+        "backend_dir": backend_dir,
+        "dir_contents": dir_contents,
+        "bin_contents": bin_contents,
+        "cwd": os.getcwd(),
+    }
+
 class SuggestRequest(BaseModel):
     queue_ids: List[int] = []
     track_titles: List[str] = []
