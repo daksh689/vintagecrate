@@ -141,7 +141,7 @@ def download_and_index(search_query: str):
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
-            download_url = f"https://www.youtube.com/watch?v={video_id}"
+            download_url = f"https://music.youtube.com/watch?v={video_id}"
             print(f"[yt-dlp] Downloading from: {download_url}")
             ydl_down.download([download_url])
 
