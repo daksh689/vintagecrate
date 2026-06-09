@@ -67,8 +67,10 @@ class SearchRequest(BaseModel):
     query: str
 
 @app.get("/api/debug")
-def debug_info():
+def debug_info(query: str = None):
     import shutil, subprocess
+    import yt_dlp
+    
     node_path = shutil.which("node")
     ffmpeg_path = shutil.which("ffmpeg")
     node_version = None
@@ -79,19 +81,33 @@ def debug_info():
             node_version = f"error: {e}"
     
     backend_dir = os.path.dirname(os.path.abspath(__file__))
-    dir_contents = os.listdir(backend_dir)
-    bin_contents = os.listdir(os.path.join(backend_dir, "bin")) if os.path.exists(os.path.join(backend_dir, "bin")) else []
     
-    return {
+    debug_data = {
         "node_path": node_path,
         "node_version": node_version,
         "ffmpeg_path": ffmpeg_path,
-        "PATH": os.environ.get("PATH", ""),
-        "backend_dir": backend_dir,
-        "dir_contents": dir_contents,
-        "bin_contents": bin_contents,
-        "cwd": os.getcwd(),
     }
+
+    if query:
+        ydl_opts = {
+            'quiet': False,
+            'extract_flat': True,
+            'socket_timeout': 10,
+        }
+        cookies_path = os.path.join(backend_dir, "www.youtube.com_cookies.txt")
+        if os.path.exists(cookies_path):
+            ydl_opts['cookiefile'] = cookies_path
+            
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                results = ydl.extract_info(f"ytsearch3:{query}", download=False)
+                entries = results.get('entries', []) if isinstance(results, dict) else []
+                debug_data["yt_dlp_test"] = f"Found {len(entries)} entries"
+                debug_data["yt_dlp_entries"] = entries
+        except Exception as e:
+            debug_data["yt_dlp_error"] = str(e)
+            
+    return debug_data
 
 class SuggestRequest(BaseModel):
     queue_ids: List[int] = []
