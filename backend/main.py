@@ -22,10 +22,14 @@ from music_manager import (
     generate_suggestions,
     increment_play_count,
     delete_track,
-    search_local_db
+    search_local_db,
+    init_db
 )
 
 app = FastAPI(title="AI Music System API")
+
+# Ensure SQLite database is initialized
+init_db()
 
 # Allow CORS for React frontend
 app.add_middleware(
