@@ -8,10 +8,28 @@ import os
 # Resolve BASE_DIR as the project root (one level up from backend/)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-# Prepend local bin folder to PATH so yt-dlp finds portable node binary
-bin_path = os.path.join(os.path.dirname(__file__), "bin")
+# Prepend local bin folder AND portable Node.js directory to PATH
+# so yt-dlp finds the node binary for YouTube signature solving
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+bin_path = os.path.join(BACKEND_DIR, "bin")
+
+# Also look for the full node directory (node-v*-linux-x64/bin)
+node_bin_paths = []
 if os.path.exists(bin_path):
-    os.environ["PATH"] = bin_path + os.pathsep + os.environ.get("PATH", "")
+    node_bin_paths.append(bin_path)
+for entry in os.listdir(BACKEND_DIR):
+    node_dir_bin = os.path.join(BACKEND_DIR, entry, "bin")
+    if entry.startswith("node-") and os.path.isdir(node_dir_bin):
+        node_bin_paths.append(node_dir_bin)
+
+if node_bin_paths:
+    os.environ["PATH"] = os.pathsep.join(node_bin_paths) + os.pathsep + os.environ.get("PATH", "")
+    print(f"[startup] Added to PATH: {node_bin_paths}")
+
+# Verify node is accessible
+import shutil
+node_location = shutil.which("node")
+print(f"[startup] Node.js found at: {node_location}" if node_location else "[startup] WARNING: Node.js NOT found in PATH!")
 
 def resolve_file_path(fp: str) -> str:
     """Handle both absolute and relative file paths from the DB."""

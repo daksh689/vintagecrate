@@ -31,11 +31,20 @@ else
     echo "Node.js already present."
 fi
 
-# 4. Create a symbolic link or add node to local bin path
+# 4. Ensure node binary is executable and create symlink
+chmod +x "$NODE_DIR/bin/node"
 mkdir -p bin
-ln -sf "../$NODE_DIR/bin/node" bin/node
+ln -sf "$(pwd)/$NODE_DIR/bin/node" bin/node
+chmod +x bin/node
 
-# 5. Ensure music_vault directory exists
+# 5. Verify node is working
+echo "Node.js version:"
+"$NODE_DIR/bin/node" --version || echo "WARNING: Node.js binary not working!"
+
+echo "ffmpeg version:"
+ffmpeg -version | head -1 || echo "WARNING: ffmpeg not working!"
+
+# 6. Ensure music_vault directory exists
 mkdir -p ../music_vault
 
 echo "=== Build Completed ==="
