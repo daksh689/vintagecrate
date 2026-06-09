@@ -3,7 +3,7 @@ import { Play, Pause, SkipForward, SkipBack, Search, Music, Loader2,
          Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat } from 'lucide-react';
 import './index.css';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API = import.meta.env.VITE_API_URL || 'https://alberta-sterling-director-organization.trycloudflare.com/api';
 
 const clean = (t) => t
   .replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '')
