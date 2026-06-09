@@ -124,6 +124,7 @@ def download_and_index(search_query: str):
         'format': 'bestaudio/best',
         'outtmpl': f"{file_path_base}.%(ext)s",
         'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
+        'extractor_args': {'youtube': ['player_client=android,ios']},
         'geo_bypass': True,
         'socket_timeout': 30,
         'retries': 3,
