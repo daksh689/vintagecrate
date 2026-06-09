@@ -66,12 +66,17 @@ def download_and_index(search_query: str):
         
     ydl_opts = {
         'format': 'bestaudio/best',
-        'quiet': True,
-        'no_warnings': True,
-        'extract_flat': True
+        'quiet': False,
+        'no_warnings': False,
+        'extract_flat': True,
+        'geo_bypass': True,
+        'socket_timeout': 30,
     }
     if os.path.exists(cookies_path):
         ydl_opts['cookiefile'] = cookies_path
+        print(f"[yt-dlp] Using cookies from: {cookies_path}")
+    else:
+        print(f"[yt-dlp] No cookies file found, proceeding without cookies")
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -153,7 +158,9 @@ def download_and_index(search_query: str):
             return None
 
         except Exception as e:
-            print(f"yt_dlp error: {e}")
+            import traceback
+            print(f"[yt-dlp] ERROR: {e}")
+            traceback.print_exc()
             return None
 
 def get_all_tracks():

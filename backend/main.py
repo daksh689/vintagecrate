@@ -73,9 +73,12 @@ def search_and_download(req: SearchRequest):
         return local
 
     # 2. Not found locally — download from YouTube
-    track_id = download_and_index(req.query)
+    try:
+        track_id = download_and_index(req.query)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Download engine error: {str(e)}")
     if not track_id:
-        raise HTTPException(status_code=404, detail="Could not find or download the track.")
+        raise HTTPException(status_code=404, detail="Could not find or download the track. YouTube may be blocking this server's IP.")
     track = get_track_by_id(track_id)
     if not track:
         raise HTTPException(status_code=404, detail="Track indexed but not found in DB.")
