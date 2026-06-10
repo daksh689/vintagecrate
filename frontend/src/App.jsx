@@ -71,6 +71,7 @@ export default function App() {
   const ytPlayerRef = useRef(null);
   const ytReadyRef = useRef(false);
   const ytIntervalRef = useRef(null);
+  const nextRef = useRef(null);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -176,7 +177,7 @@ export default function App() {
                 }, 500);
               } else if (ev.data === window.YT.PlayerState.ENDED) {
                 stopYtInterval();
-                next();
+                if (nextRef.current) nextRef.current();
               } else if (ev.data === window.YT.PlayerState.BUFFERING) {
                 setBuffering(true);
               }
@@ -264,6 +265,8 @@ export default function App() {
     const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : -1;
     playTrack(activeList[(idx + 1) % activeList.length]);
   }, [activeList, current, playTrack, upNext, isRepeat]);
+
+  useEffect(() => { nextRef.current = next; }, [next]);
 
   const prev = useCallback(() => {
     if (!activeList.length) return;
