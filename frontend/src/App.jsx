@@ -151,10 +151,14 @@ export default function App() {
       if (a) { a.pause(); a.src = ''; }
 
       const startYt = (videoId) => {
-        if (ytPlayerRef.current) {
-          ytPlayerRef.current.destroy();
-          ytPlayerRef.current = null;
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+          try {
+            ytPlayerRef.current.loadVideoById(videoId);
+            ytPlayerRef.current.setVolume(vol * 100);
+            return;
+          } catch(e) { console.error("YT reuse error", e); }
         }
+
         ytPlayerRef.current = new window.YT.Player('yt-player-hidden', {
           height: '1', width: '1',
           videoId: videoId,
@@ -165,7 +169,6 @@ export default function App() {
               ev.target.playVideo();
             },
             onStateChange: (ev) => {
-              if (playId !== playIdRef.current) return;
               if (ev.data === window.YT.PlayerState.PLAYING) {
                 setBuffering(false); setPlaying(true);
                 stopYtInterval();
@@ -183,7 +186,7 @@ export default function App() {
               }
             },
             onError: () => {
-              if (playId === playIdRef.current) { setBuffering(false); setPlaying(false); }
+              setBuffering(false); setPlaying(false);
             },
           },
         });
@@ -202,7 +205,9 @@ export default function App() {
     }
 
     // --- Server-hosted track ---
-    if (ytPlayerRef.current) { ytPlayerRef.current.destroy(); ytPlayerRef.current = null; }
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') { 
+      try { ytPlayerRef.current.pauseVideo(); } catch(e) {}
+    }
     stopYtInterval();
 
     const a = audioRef.current;
