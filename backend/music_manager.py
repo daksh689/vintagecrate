@@ -113,56 +113,130 @@ def download_and_index(search_query: str):
     if found_dup_id:
         return found_dup_id
 
-    # 3. Download the specific video ID using yt-dlp
+    # 3. Download using Piped API (bypasses YouTube datacenter IP blocks)
     video_id = target_video_id
     safe_title = yt_dlp.utils.sanitize_filename(target_title)
     filename_base = f"{safe_title} [{video_id}]"
     file_path_base = os.path.abspath(os.path.join(SAVE_DIR, filename_base))
     final_file_path = f"{file_path_base}.mp3"
 
-    ydl_opts_down = {
-        'format': 'bestaudio/best',
-        'outtmpl': f"{file_path_base}.%(ext)s",
-        'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
-        'extractor_args': {'youtube': ['player_client=android,ios']},
-        'geo_bypass': True,
-        'socket_timeout': 30,
-        'retries': 3,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
-        },
-    }
-    
-    cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
-    if not os.path.exists(cookies_path):
-        cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
-    if os.path.exists(cookies_path):
-        ydl_opts_down['cookiefile'] = cookies_path
+    import requests
+    import subprocess
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
-            download_url = f"https://music.youtube.com/watch?v={video_id}"
-            print(f"[yt-dlp] Downloading from: {download_url}")
-            ydl_down.download([download_url])
+    PIPED_INSTANCES = [
+        "https://pipedapi.kavin.rocks",
+        "https://pipedapi.adminforge.de",
+        "https://api.piped.yt",
+    ]
 
-        with db_lock:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            try:
-                cursor.execute("INSERT INTO tracks (title, file_path, play_count) VALUES (?, ?, 0)", (safe_title, final_file_path))
-                conn.commit()
-                new_id = cursor.lastrowid
-            except sqlite3.IntegrityError:
-                new_id = None
-                print(f"Track already exists in DB: {safe_title}")
-            conn.close()
-            
-        if new_id:
-            return new_id
-        return None
-    except Exception as e:
-        raise e
+    downloaded = False
+
+    # --- Method 1: Piped API ---
+    for piped_url in PIPED_INSTANCES:
+        try:
+            print(f"[piped] Trying {piped_url} for {video_id}...")
+            resp = requests.get(f"{piped_url}/streams/{video_id}", timeout=15)
+            if resp.status_code != 200:
+                print(f"[piped] {piped_url} returned status {resp.status_code}")
+                continue
+
+            data = resp.json()
+            audio_streams = data.get("audioStreams", [])
+            if not audio_streams:
+                print(f"[piped] No audio streams from {piped_url}")
+                continue
+
+            # Pick the best audio stream (highest bitrate)
+            audio_streams.sort(key=lambda s: s.get("bitrate", 0), reverse=True)
+            best_stream = audio_streams[0]
+            stream_url = best_stream.get("url")
+
+            if not stream_url:
+                continue
+
+            print(f"[piped] Downloading audio ({best_stream.get('bitrate', '?')} bps, {best_stream.get('mimeType', '?')})...")
+
+            # Download the audio stream
+            temp_file = f"{file_path_base}.tmp_audio"
+            audio_resp = requests.get(stream_url, timeout=120, stream=True)
+            audio_resp.raise_for_status()
+
+            with open(temp_file, 'wb') as f:
+                for chunk in audio_resp.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+            # Convert to MP3 using ffmpeg
+            print(f"[ffmpeg] Converting to MP3...")
+            result = subprocess.run(
+                ["ffmpeg", "-y", "-i", temp_file, "-vn", "-acodec", "libmp3lame", "-q:a", "2", final_file_path],
+                capture_output=True, text=True, timeout=120
+            )
+
+            # Clean up temp file
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+
+            if result.returncode == 0 and os.path.exists(final_file_path):
+                print(f"[piped] Successfully downloaded and converted: {safe_title}")
+                downloaded = True
+                break
+            else:
+                print(f"[ffmpeg] Conversion failed: {result.stderr[:200]}")
+
+        except Exception as e:
+            print(f"[piped] Error with {piped_url}: {e}")
+            continue
+
+    # --- Method 2: yt-dlp fallback ---
+    if not downloaded:
+        print(f"[yt-dlp] Piped failed, trying yt-dlp as fallback...")
+        ydl_opts_down = {
+            'format': 'bestaudio/best',
+            'outtmpl': f"{file_path_base}.%(ext)s",
+            'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}],
+            'extractor_args': {'youtube': ['player_client=web_creator,mweb']},
+            'geo_bypass': True,
+            'socket_timeout': 30,
+            'retries': 3,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+            },
+        }
+        cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+        if not os.path.exists(cookies_path):
+            cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "www.youtube.com_cookies.txt")
+        if os.path.exists(cookies_path):
+            ydl_opts_down['cookiefile'] = cookies_path
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts_down) as ydl_down:
+                download_url = f"https://music.youtube.com/watch?v={video_id}"
+                print(f"[yt-dlp] Downloading from: {download_url}")
+                ydl_down.download([download_url])
+                downloaded = True
+        except Exception as e:
+            print(f"[yt-dlp] Fallback also failed: {e}")
+
+    if not downloaded:
+        raise Exception(f"All download methods failed for video {video_id}")
+
+    # 4. Index in database
+    with db_lock:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("INSERT INTO tracks (title, file_path, play_count) VALUES (?, ?, 0)", (safe_title, final_file_path))
+            conn.commit()
+            new_id = cursor.lastrowid
+        except sqlite3.IntegrityError:
+            new_id = None
+            print(f"Track already exists in DB: {safe_title}")
+        conn.close()
+        
+    if new_id:
+        return new_id
+    return None
 
 def get_all_tracks():
     init_db()
