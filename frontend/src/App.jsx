@@ -355,6 +355,7 @@ export default function App() {
   const playSuggested = async () => {
     try {
       setToast({ _msg: '🎵 Finding your perfect mix...' });
+      const toastTimeout = setTimeout(() => setToast(null), 7000);
       const r = await fetch(`${API}/suggest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -364,6 +365,7 @@ export default function App() {
           liked_titles: liked.map(t => t.title),
         })
       });
+      clearTimeout(toastTimeout);
       setToast(null);
       if (r.ok) {
         const suggested = await r.json();

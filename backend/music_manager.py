@@ -410,12 +410,10 @@ def generate_suggestions(current_queue_ids: list, track_titles: list = [], liked
             if fetched_artist >= 2:
                 break
             try:
-                track_id = download_and_index(query)
-                if track_id:
-                    track = get_track_by_id(track_id)
-                    if track and track["id"] not in [t["id"] for t in suggestions]:
-                        suggestions.append(track)
-                        fetched_artist += 1
+                yt_info = search_youtube_only(query)
+                if yt_info and yt_info["youtube_id"] not in [t.get("youtube_id") for t in suggestions]:
+                    suggestions.append(yt_info)
+                    fetched_artist += 1
             except Exception as e:
                 print(f"Artist fetch error: {e}")
 
@@ -426,12 +424,10 @@ def generate_suggestions(current_queue_ids: list, track_titles: list = [], liked
         if fetched_random >= 3:
             break
         try:
-            track_id = download_and_index(query)
-            if track_id:
-                track = get_track_by_id(track_id)
-                if track and track["id"] not in [t["id"] for t in suggestions]:
-                    suggestions.append(track)
-                    fetched_random += 1
+            yt_info = search_youtube_only(query)
+            if yt_info and yt_info["youtube_id"] not in [t.get("youtube_id") for t in suggestions]:
+                suggestions.append(yt_info)
+                fetched_random += 1
         except Exception as e:
             print(f"Random fetch error: {e}")
 
