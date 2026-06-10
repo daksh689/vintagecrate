@@ -117,6 +117,14 @@ export default function App() {
     } catch {}
   };
 
+  const sorted = [...tracks].sort((a, b) => {
+    const ha = isHindi(a.title), hb = isHindi(b.title);
+    if (ha && !hb) return -1; if (!ha && hb) return 1;
+    return getSong(a.title).localeCompare(getSong(b.title));
+  });
+
+  const activeList = activeTab === 'liked' ? liked : activeTab.startsWith('pl:') ? (playlists[activeTab.slice(3)] || []) : sorted;
+
   const stopYtInterval = useCallback(() => {
     if (ytIntervalRef.current) { clearInterval(ytIntervalRef.current); ytIntervalRef.current = null; }
   }, []);
@@ -252,16 +260,16 @@ export default function App() {
       playTrack(nextTrack);
       return;
     }
-    if (!tracks.length) return;
-    const idx = current ? tracks.findIndex(t => trackKey(t) === trackKey(current)) : -1;
-    playTrack(tracks[(idx + 1) % tracks.length]);
-  }, [tracks, current, playTrack, upNext, isRepeat]);
+    if (!activeList.length) return;
+    const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : -1;
+    playTrack(activeList[(idx + 1) % activeList.length]);
+  }, [activeList, current, playTrack, upNext, isRepeat]);
 
   const prev = useCallback(() => {
-    if (!tracks.length) return;
-    const idx = current ? tracks.findIndex(t => trackKey(t) === trackKey(current)) : 0;
-    playTrack(tracks[(idx - 1 + tracks.length) % tracks.length]);
-  }, [tracks, current, playTrack]);
+    if (!activeList.length) return;
+    const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : 0;
+    playTrack(activeList[(idx - 1 + activeList.length) % activeList.length]);
+  }, [activeList, current, playTrack]);
 
   const performSearch = async (action, searchVal = null) => {
     const q = (searchVal !== null ? searchVal : query).trim();
@@ -377,12 +385,6 @@ export default function App() {
     const a = audioRef.current;
     if (a) a.currentTime = seekTo;
   };
-
-  const sorted = [...tracks].sort((a, b) => {
-    const ha = isHindi(a.title), hb = isHindi(b.title);
-    if (ha && !hb) return -1; if (!ha && hb) return 1;
-    return getSong(a.title).localeCompare(getSong(b.title));
-  });
 
   const pct = dur ? (progress / dur) * 100 : 0;
   const songName   = current ? getSong(current.title)   : null;
@@ -536,7 +538,7 @@ export default function App() {
           </div>
 
           <div className="track-list">
-            {(activeTab === 'liked' ? liked : activeTab.startsWith('pl:') ? (playlists[activeTab.slice(3)] || []) : sorted).map((t, i) => {
+            {activeList.map((t, i) => {
               const isActive = current && trackKey(current) === trackKey(t);
               return (
                 <div
