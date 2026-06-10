@@ -125,6 +125,7 @@ class SuggestRequest(BaseModel):
     queue_ids: List[int] = []
     track_titles: List[str] = []
     liked_titles: List[str] = []
+    liked_tracks: List[dict] = []
 
 @app.get("/api/tracks")
 def list_tracks():
@@ -165,7 +166,7 @@ def search_and_download(req: SearchRequest):
 
 @app.post("/api/suggest")
 def suggest_tracks(req: SuggestRequest):
-    suggestions = generate_suggestions(req.queue_ids, req.track_titles, req.liked_titles)
+    suggestions = generate_suggestions(req.queue_ids, req.track_titles, req.liked_titles, req.liked_tracks)
     return suggestions
 
 @app.get("/api/stream/{track_id}")

@@ -363,6 +363,7 @@ export default function App() {
           queue_ids: [],
           track_titles: tracks.map(t => t.title),
           liked_titles: liked.map(t => t.title),
+          liked_tracks: liked,
         })
       });
       clearTimeout(toastTimeout);

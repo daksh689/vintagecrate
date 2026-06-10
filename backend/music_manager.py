@@ -371,28 +371,35 @@ RANDOM_SEARCHES = [
     "Coldplay official music video",
 ]
 
-def generate_suggestions(current_queue_ids: list, track_titles: list = [], liked_titles: list = []):
+def generate_suggestions(current_queue_ids: list, track_titles: list = [], liked_titles: list = [], liked_tracks: list = []):
     """
     Returns 10 suggested tracks:
-    - 5 from local library (weighted by play_count)
+    - 5 from Liked Songs (or local library if liked is empty)
     - 2 from favorite artist (fetched from YouTube)
     - 3 random popular songs (fetched from YouTube)
     """
     all_tracks = get_all_tracks()
     suggestions = []
 
-    # ── Part 1: 5 from library ──
-    if all_tracks:
-        available_pool = [t for t in all_tracks if t["id"] not in current_queue_ids]
+    # ── Part 1: 5 from Liked Songs (or library) ──
+    available_pool = []
+    if liked_tracks:
+        available_pool = [t for t in liked_tracks if t.get("id") not in current_queue_ids]
+        if not available_pool:
+            available_pool = liked_tracks
+    elif all_tracks:
+        available_pool = [t for t in all_tracks if t.get("id") not in current_queue_ids]
         if not available_pool:
             available_pool = all_tracks
 
-        weighted_pool = [t for t in available_pool for _ in range(t["play_count"] + 1)]
+    if available_pool:
+        weighted_pool = [t for t in available_pool for _ in range(t.get("play_count", 0) + 1)]
         random.shuffle(weighted_pool)
         seen = set()
         for track in weighted_pool:
-            if track["id"] not in seen:
-                seen.add(track["id"])
+            track_key = track.get("id") or track.get("youtube_id")
+            if track_key not in seen:
+                seen.add(track_key)
                 suggestions.append(track)
             if len(suggestions) >= 5:
                 break
