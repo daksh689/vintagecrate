@@ -49,8 +49,18 @@ export default function App() {
   const [toast, setToast]         = useState(null);
   const [upNext, setUpNext]       = useState([]);
   const [ctxMenu, setCtxMenu]     = useState(null);
-  const [liked, setLiked]         = useState([]);
-  const [playlists, setPlaylists] = useState({});
+  const [liked, setLiked]         = useState(() => {
+    try {
+      const saved = localStorage.getItem('vintagecrate_liked');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [playlists, setPlaylists] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vintagecrate_playlists');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'liked' | 'pl:NAME'
   const [isLightMode, setIsLightMode] = useState(false);
   const [isRepeat, setIsRepeat]   = useState(false);
@@ -70,6 +80,12 @@ export default function App() {
   }, []);
 
   useEffect(() => { loadTracks(); }, []);
+  useEffect(() => {
+    try { localStorage.setItem('vintagecrate_liked', JSON.stringify(liked)); } catch {}
+  }, [liked]);
+  useEffect(() => {
+    try { localStorage.setItem('vintagecrate_playlists', JSON.stringify(playlists)); } catch {}
+  }, [playlists]);
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = vol;
     if (ytPlayerRef.current && typeof ytPlayerRef.current.setVolume === 'function') {
