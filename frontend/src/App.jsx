@@ -33,6 +33,8 @@ const fmt = (s) => {
 
 const isHindi = (s) => /[\u0900-\u097F]/.test(s);
 
+const trackKey = (t) => t ? (t.id || t.youtube_id) : null;
+
 export default function App() {
   const [tracks, setTracks]       = useState([]);
   const [current, setCurrent]     = useState(null);
@@ -251,13 +253,13 @@ export default function App() {
       return;
     }
     if (!tracks.length) return;
-    const idx = current ? tracks.findIndex(t => t.id === current.id) : -1;
+    const idx = current ? tracks.findIndex(t => trackKey(t) === trackKey(current)) : -1;
     playTrack(tracks[(idx + 1) % tracks.length]);
   }, [tracks, current, playTrack, upNext, isRepeat]);
 
   const prev = useCallback(() => {
     if (!tracks.length) return;
-    const idx = current ? tracks.findIndex(t => t.id === current.id) : 0;
+    const idx = current ? tracks.findIndex(t => trackKey(t) === trackKey(current)) : 0;
     playTrack(tracks[(idx - 1 + tracks.length) % tracks.length]);
   }, [tracks, current, playTrack]);
 
@@ -273,7 +275,7 @@ export default function App() {
       });
       if (r.ok) {
         const track = await r.json();
-        setTracks(prev => prev.find(t => t.id === track.id) ? prev : [track, ...prev]);
+        setTracks(prev => prev.find(t => trackKey(t) === trackKey(track)) ? prev : [track, ...prev]);
         setQuery('');
         if (action === 'queue' && current) {
           setUpNext(prev => [...prev, track]);
@@ -298,7 +300,7 @@ export default function App() {
       setToast({ ...ctxMenu.track, _msg: 'Added to queue' });
       setTimeout(() => setToast(null), 7000);
     } else if (action === 'like') {
-      if (!liked.find(t => t.id === ctxMenu.track.id)) {
+      if (!liked.find(t => trackKey(t) === trackKey(ctxMenu.track))) {
         setLiked(prev => [...prev, ctxMenu.track]);
         setToast({ ...ctxMenu.track, _msg: 'Added to Liked Songs' });
       } else {
@@ -318,7 +320,7 @@ export default function App() {
       
       setPlaylists(prev => {
         const list = prev[pName] || [];
-        if (!list.find(t => t.id === ctxMenu.track.id)) {
+        if (!list.find(t => trackKey(t) === trackKey(ctxMenu.track))) {
           setToast({ ...ctxMenu.track, _msg: `Added to ${pName}` });
           return { ...prev, [pName]: [...list, ctxMenu.track] };
         }
@@ -535,10 +537,10 @@ export default function App() {
 
           <div className="track-list">
             {(activeTab === 'liked' ? liked : activeTab.startsWith('pl:') ? (playlists[activeTab.slice(3)] || []) : sorted).map((t, i) => {
-              const isActive = current?.id === t.id;
+              const isActive = current && trackKey(current) === trackKey(t);
               return (
                 <div
-                  key={t.id}
+                  key={trackKey(t) || i}
                   className={`track-row${isActive ? ' active' : ''}`}
                   onClick={() => playTrack(t)}
                   onContextMenu={(e) => {
@@ -614,7 +616,7 @@ export default function App() {
             <div className="queue-list">
               {upNext.length === 0 && <div className="queue-empty">Queue is empty</div>}
               {upNext.map((t, idx) => (
-                <div key={`${t.id}-${idx}`} className="queue-item">
+                <div key={`${trackKey(t)}-${idx}`} className="queue-item">
                   <span className="q-num">{idx + 1}</span>
                   <div className="q-info">
                     <div className="q-name">{getSong(t.title)}</div>
@@ -669,8 +671,8 @@ export default function App() {
               <button 
                 className="like-btn-np" 
                 onClick={() => {
-                  if (liked.some(t => t.id === current.id)) {
-                    setLiked(prev => prev.filter(t => t.id !== current.id));
+                  if (liked.some(t => trackKey(t) === trackKey(current))) {
+                    setLiked(prev => prev.filter(t => trackKey(t) !== trackKey(current)));
                     setToast({ ...current, _msg: 'Removed from Liked' });
                     setTimeout(() => setToast(null), 7000);
                   } else {
@@ -681,13 +683,13 @@ export default function App() {
                 }}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: liked.some(t => t.id === current.id) ? '#e63946' : 'var(--glass-text-muted)',
+                  color: liked.some(t => trackKey(t) === trackKey(current)) ? '#e63946' : 'var(--glass-text-muted)',
                   transition: 'all 0.3s ease', padding: '0.5rem',
                   display: 'flex', alignItems: 'center'
                 }}
-                title={liked.some(t => t.id === current.id) ? "Remove from Liked" : "Add to Liked Songs"}
+                title={liked.some(t => trackKey(t) === trackKey(current)) ? "Remove from Liked" : "Add to Liked Songs"}
               >
-                <Heart size={20} fill={liked.some(t => t.id === current.id) ? '#e63946' : 'none'} />
+                <Heart size={20} fill={liked.some(t => trackKey(t) === trackKey(current)) ? '#e63946' : 'none'} />
               </button>
             )}
           </div>
