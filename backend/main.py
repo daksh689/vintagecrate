@@ -46,6 +46,7 @@ from music_manager import (
     increment_play_count,
     delete_track,
     search_local_db,
+    search_youtube_only,
     init_db
 )
 
@@ -144,18 +145,23 @@ def search_and_download(req: SearchRequest):
         local["from_library"] = True
         return local
 
-    # 2. Not found locally — download from YouTube
+    # 2. Try downloading from YouTube (may fail on datacenter IPs)
     try:
         track_id = download_and_index(req.query)
+        if track_id:
+            track = get_track_by_id(track_id)
+            if track:
+                track["from_library"] = False
+                return track
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Download engine error: {str(e)}")
-    if not track_id:
-        raise HTTPException(status_code=404, detail="Could not find or download the track. YouTube may be blocking this server's IP.")
-    track = get_track_by_id(track_id)
-    if not track:
-        raise HTTPException(status_code=404, detail="Track indexed but not found in DB.")
-    track["from_library"] = False
-    return track
+        print(f"[search] Download failed: {e}, falling back to YouTube streaming")
+
+    # 3. Fallback: return YouTube video ID for client-side playback
+    yt_info = search_youtube_only(req.query)
+    if yt_info:
+        return yt_info
+
+    raise HTTPException(status_code=404, detail="Could not find the track.")
 
 @app.post("/api/suggest")
 def suggest_tracks(req: SuggestRequest):

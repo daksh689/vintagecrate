@@ -238,6 +238,37 @@ def download_and_index(search_query: str):
         return new_id
     return None
 
+def search_youtube_only(search_query: str):
+    """Search YouTube Music and return video info without downloading.
+    Used as fallback when server-side download fails."""
+    from ytmusicapi import YTMusic
+    ytmusic = YTMusic()
+    try:
+        search_results = ytmusic.search(search_query, filter="songs")
+    except Exception as e:
+        print(f"[ytmusicapi] Search error: {e}")
+        return None
+
+    if not search_results:
+        return None
+
+    for result in search_results:
+        duration_seconds = result.get('duration_seconds', 0)
+        if duration_seconds and duration_seconds > 360:
+            continue
+        video_id = result.get('videoId')
+        if not video_id:
+            continue
+        title = result.get('title', search_query)
+        artists = result.get('artists', [])
+        artist = artists[0].get('name', '') if artists else ''
+        return {
+            "youtube_id": video_id,
+            "title": f"{artist} - {title}" if artist else title,
+            "is_youtube": True,
+        }
+    return None
+
 def get_all_tracks():
     init_db()
     with db_lock:
