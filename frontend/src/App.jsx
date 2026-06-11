@@ -411,11 +411,26 @@ export default function App() {
         return prev;
       });
       setTimeout(() => setToast(null), 7000);
-    } else if (action === 'remove') {
-      setTracks(prev => prev.filter(t => t.id !== ctxMenu.track.id));
-      setToast({ ...ctxMenu.track, _msg: 'Removed from library' });
-      setTimeout(() => setToast(null), 7000);
-    }
+      } else if (action === 'remove') {
+        if (activeTab === 'library' || activeTab === 'search') {
+          setTracks(prev => prev.filter(t => t.id !== ctxMenu.track.id));
+          setToast({ ...ctxMenu.track, _msg: 'Removed from library' });
+        } else if (activeTab === 'liked') {
+          setLiked(prev => prev.filter(t => t.id !== ctxMenu.track.id));
+          setToast({ ...ctxMenu.track, _msg: 'Removed from Liked Songs' });
+        } else {
+          setPlaylists(prev => {
+            const next = { ...prev };
+            const playlistKey = activeTab.replace('pl:', '');
+            if (next[playlistKey]) {
+              next[playlistKey] = next[playlistKey].filter(t => t.id !== ctxMenu.track.id);
+            }
+            return next;
+          });
+          setToast({ ...ctxMenu.track, _msg: `Removed from ${activeTab.replace('pl:', '')}` });
+        }
+        setTimeout(() => setToast(null), 7000);
+      }
     setCtxMenu(null);
   };
 
@@ -939,14 +954,20 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <div className="ctx-item danger" onClick={() => handleCtxAction('remove')}>Remove from Library</div>
+            <div className="ctx-item danger" onClick={() => handleCtxAction('remove')}>
+              {activeTab === 'library' || activeTab === 'search' ? 'Remove from Library' : 
+               activeTab === 'liked' ? 'Remove from Liked Songs' : 
+               'Remove from this playlist'}
+            </div>
           </div>
         </>
       )}
     </>
   );
+
+
+
+
+
 }
-
-
-
 
