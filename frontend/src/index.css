@@ -1033,6 +1033,201 @@ body.light-mode .home-mode-btn:hover {
     flex-direction: column;
     padding: 0;
     overflow-y: auto;
+  margin-bottom: 0.5rem;
+  animation: homeEntrance 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.home-subhead {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.9);
+  letter-spacing: 2px;
+}
+.home-subhead .dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #e63946;
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(230,57,70,0.8), 0 0 20px rgba(230,57,70,0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(230,57,70,0.8), 0 0 20px rgba(230,57,70,0.4); }
+  50%       { box-shadow: 0 0 18px rgba(230,57,70,1), 0 0 35px rgba(230,57,70,0.6); }
+}
+
+.home-mode-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+  margin-left: auto;
+}
+.home-mode-btn:hover {
+  background: rgba(255,255,255,0.22);
+  transform: scale(1.1) rotate(20deg);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+body.light-mode .home-mode-btn {
+  background: rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.15);
+  color: #4A3B32;
+}
+body.light-mode .home-mode-btn:hover {
+  background: rgba(0,0,0,0.15);
+}
+
+.home-content {
+  flex: 1;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  position: relative; z-index: 2;
+  padding-top: 1rem;
+}
+
+.collection-label {
+  font-size: 0.72rem; font-weight: 800; color: #e63946;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.6rem;
+  animation: homeEntrance 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+}
+.home-title {
+  font-size: 4.5rem; font-weight: 900; color: white;
+  margin: 0 0 3rem 0; letter-spacing: -2px; line-height: 1;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  animation: homeEntrance 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
+}
+
+
+.home-cards {
+  display: flex; gap: 2rem; justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.liked-card, .player-card, .playlists-card {
+  width: 280px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 40px var(--glass-shadow);
+}
+.liked-card:hover, .player-card:hover, .playlists-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px var(--glass-shadow);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── ICON STACK (real HTML layers) ── */
+.icon-stack {
+  position: relative;
+  width: 100%; height: 180px;
+  margin-bottom: 1.4rem;
+  flex-shrink: 0;
+}
+.icon-stack-layer,
+.icon-stack-main {
+  position: absolute; border-radius: 14px;
+}
+/* Layer 3 — furthest back, most offset */
+.icon-stack-layer.layer-3 {
+  inset: 0;
+  background: rgba(15,32,56,0.15);
+  transform: rotate(6deg) translate(5px, 5px);
+  border-radius: 14px;
+}
+/* Layer 2 — middle */
+.icon-stack-layer.layer-2 {
+  inset: 0;
+  background: rgba(15,32,56,0.35);
+  transform: rotate(3deg) translate(2px, 2px);
+  border-radius: 14px;
+}
+/* Main top layer */
+.icon-stack-main {
+  inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(0deg);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.icon-stack-main svg {
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.liked-card h2, .player-card h2, .playlists-card h2 {
+  font-size: 1.6rem; color: var(--glass-text); margin: 0 0 0.6rem 0;
+  font-weight: 800; letter-spacing: -0.3px;
+}
+.liked-card p, .player-card p, .playlists-card p {
+  font-size: 0.85rem; color: var(--glass-text-muted); line-height: 1.5;
+  margin: 0 0 1.2rem 0;
+}
+.suggest-btn {
+  width: 100%; padding: 1rem; border-radius: 12px;
+  background: var(--accent); color: white; border: none;
+  font-weight: 700; font-size: 0.8rem; letter-spacing: 1px;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  cursor: pointer; transition: all 0.3s ease;
+  box-shadow: 0 10px 20px var(--accent-shadow);
+  position: relative; overflow: hidden;
+  margin-top: auto;
+}
+.suggest-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 10px 28px var(--accent-shadow);
+}
+.suggest-btn:active { transform: translateY(0) scale(1); }
+
+/* Home button in sidebar */
+.home-btn {
+  margin-left: auto; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px; padding: 5px 7px;
+  color: var(--sidebar-muted); cursor: pointer;
+  display: flex; align-items: center;
+  transition: background 0.2s, color 0.2s;
+}
+.home-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+.spin { animation: spinAnim 0.9s linear infinite; }
+@keyframes spinAnim { to { transform: rotate(360deg); } }
+
+
+/* Hide mobile elements on desktop */
+.mobile-header, .mobile-menu-overlay { display: none; }
+
+/* --- MOBILE RESPONSIVENESS (< 768px) --- */
+
+/* Hide all mobile-specific elements on desktop */
+.mobile-top-header, .mobile-content-area, .mobile-bottom-nav { display: none; }
+
+/* --- MOBILE RESPONSIVENESS (< 768px) --- */
+  /* --- MOBILE RESPONSIVENESS (< 768px) --- */
+@media (max-width: 768px) {
+  /* Layout Toggles based on mobileTab */
+  .sidebar { display: none !important; }
+  
+  .app:not(.mobile-tab-player) .vinyl-wrap,
+  .app:not(.mobile-tab-player) .np-card {
+    display: none !important;
+  }
+  
+  .app.mobile-tab-player .main-content {
+    display: none !important;
+  }
+
+  .app {
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
     overflow-x: hidden;
   }
 
@@ -1049,13 +1244,6 @@ body.light-mode .home-mode-btn:hover {
   }
   .mobile-menu-btn { display: none; } /* Hide hamburger menu */
   .mobile-brand-name { font-weight: 800; font-size: 1.1rem; color: var(--ink); }
-  
-  .mobile-header::after {
-    content: '';
-    width: 36px; height: 36px; border-radius: 50%;
-    background: url('https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff');
-    background-size: cover;
-  }
 
   /* -- BOTTOM NAVIGATION -- */
   .mobile-bottom-nav {
@@ -1124,18 +1312,31 @@ body.light-mode .home-mode-btn:hover {
     display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3); min-height: 250px;
   }
-  .liked-card .icon-stack { display: none; } /* Hide desktop stacked hearts */
   
-  /* Create the huge white heart icon */
-  .liked-card::before {
-    content: '?'; font-size: 3rem; color: white; display: flex; align-items: center; justify-content: center;
-    width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1.5rem;
+  /* Restyle existing icon-stack to look like the mockup's large square */
+  .liked-card .icon-stack { 
+    position: relative; width: 60px; height: 60px; margin-bottom: 1.5rem;
   }
+  .liked-card .icon-stack-layer { display: none; } /* hide layers */
+  .liked-card .icon-stack-main {
+    position: relative; top: 0; left: 0; width: 100%; height: 100%; transform: none;
+    background: rgba(255,255,255,0.1) !important; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  
   .liked-card h2 { color: white; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
   .liked-card p { color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.4; margin-bottom: 2rem; }
   .liked-card .suggest-btn {
-    background: #0ea5e9; color: white; border-radius: 30px; padding: 1rem 1.5rem; font-weight: 800;
+    background: #0ea5e9; color: transparent; border-radius: 30px; padding: 1rem 1.5rem; font-weight: 800;
+    position: relative;
   }
+  .liked-card .suggest-btn::after {
+    content: '▶ SHUFFLE PLAYBACK';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; letter-spacing: 1px;
+  }
+  .liked-card .suggest-btn svg { display: none; }
 
   /* Hide Search stuff */
   /* Make immersive search fill mobile screen */
@@ -1149,4 +1350,6 @@ body.light-mode .home-mode-btn:hover {
     height: 100%; padding-top: 2rem;
   }
   .app.mobile-tab-search .close-btn { display: none; }
+}
+
 }
