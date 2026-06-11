@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Search, Music, Loader2,
-         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat, Shuffle, Menu } from 'lucide-react';
+         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat, Shuffle, Menu, Home, Library, Disc, History, ListMusic } from 'lucide-react';
 import './index.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://vintagecrate.onrender.com/api';
@@ -68,6 +68,7 @@ export default function App() {
   const [isRepeat, setIsRepeat]   = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState('home');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const audioRef = useRef(null);
@@ -945,4 +946,7 @@ export default function App() {
     </>
   );
 }
+
+
+
 
