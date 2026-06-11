@@ -996,6 +996,200 @@ body.light-mode .home-mode-btn:hover {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 7px; padding: 5px 7px;
   color: var(--sidebar-muted); cursor: pointer;
+.home-view {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  z-index: 50;
+  overflow-y: auto;
+}
+.home-view::before, .home-view::after {
+  content: '';
+  position: fixed; inset: 0; z-index: -1;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+.home-view::before {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.88) 100%);
+  opacity: 1;
+}
+.home-view::after {
+  background: var(--bg) url('/cassettes_bg.png') center center / cover no-repeat;
+  opacity: 0;
+}
+body.light-mode .home-view::before { opacity: 0; }
+body.light-mode .home-view::after { opacity: 1; }
+
+.home-view::-webkit-scrollbar { width: 6px; }
+.home-view::-webkit-scrollbar-track { background: transparent; }
+.home-view::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+.home-view::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+.home-main {
+  min-height: 100%; padding: 2.5rem 3.5rem 15rem 3.5rem;
+  display: flex; flex-direction: column;
+  position: relative; z-index: 1;
+}
+.home-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 0.5rem;
+  animation: homeEntrance 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.home-subhead {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.9);
+  letter-spacing: 2px;
+}
+.home-subhead .dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #e63946;
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(230,57,70,0.8), 0 0 20px rgba(230,57,70,0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(230,57,70,0.8), 0 0 20px rgba(230,57,70,0.4); }
+  50%       { box-shadow: 0 0 18px rgba(230,57,70,1), 0 0 35px rgba(230,57,70,0.6); }
+}
+
+.home-mode-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+  margin-left: auto;
+}
+.home-mode-btn:hover {
+  background: rgba(255,255,255,0.22);
+  transform: scale(1.1) rotate(20deg);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+body.light-mode .home-mode-btn {
+  background: rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.15);
+  color: #4A3B32;
+}
+body.light-mode .home-mode-btn:hover {
+  background: rgba(0,0,0,0.15);
+}
+
+.home-content {
+  flex: 1;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  position: relative; z-index: 2;
+  padding-top: 1rem;
+}
+
+.collection-label {
+  font-size: 0.72rem; font-weight: 800; color: #e63946;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.6rem;
+  animation: homeEntrance 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+}
+.home-title {
+  font-size: 4.5rem; font-weight: 900; color: white;
+  margin: 0 0 3rem 0; letter-spacing: -2px; line-height: 1;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  animation: homeEntrance 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
+}
+
+
+.home-cards {
+  display: flex; gap: 2rem; justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.liked-card, .player-card, .playlists-card {
+  width: 280px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 40px var(--glass-shadow);
+}
+.liked-card:hover, .player-card:hover, .playlists-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px var(--glass-shadow);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── ICON STACK (real HTML layers) ── */
+.icon-stack {
+  position: relative;
+  width: 100%; height: 180px;
+  margin-bottom: 1.4rem;
+  flex-shrink: 0;
+}
+.icon-stack-layer,
+.icon-stack-main {
+  position: absolute; border-radius: 14px;
+}
+/* Layer 3 — furthest back, most offset */
+.icon-stack-layer.layer-3 {
+  inset: 0;
+  background: rgba(15,32,56,0.15);
+  transform: rotate(6deg) translate(5px, 5px);
+  border-radius: 14px;
+}
+/* Layer 2 — middle */
+.icon-stack-layer.layer-2 {
+  inset: 0;
+  background: rgba(15,32,56,0.35);
+  transform: rotate(3deg) translate(2px, 2px);
+  border-radius: 14px;
+}
+/* Main top layer */
+.icon-stack-main {
+  inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(0deg);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.icon-stack-main svg {
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.liked-card h2, .player-card h2, .playlists-card h2 {
+  font-size: 1.6rem; color: var(--glass-text); margin: 0 0 0.6rem 0;
+  font-weight: 800; letter-spacing: -0.3px;
+}
+.liked-card p, .player-card p, .playlists-card p {
+  font-size: 0.85rem; color: var(--glass-text-muted); line-height: 1.5;
+  margin: 0 0 1.2rem 0;
+}
+.suggest-btn {
+  width: 100%; padding: 1rem; border-radius: 12px;
+  background: var(--accent); color: white; border: none;
+  font-weight: 700; font-size: 0.8rem; letter-spacing: 1px;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  cursor: pointer; transition: all 0.3s ease;
+  box-shadow: 0 10px 20px var(--accent-shadow);
+  position: relative; overflow: hidden;
+  margin-top: auto;
+}
+.suggest-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 10px 28px var(--accent-shadow);
+}
+.suggest-btn:active { transform: translateY(0) scale(1); }
+
+/* Home button in sidebar */
+.home-btn {
+  margin-left: auto; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px; padding: 5px 7px;
+  color: var(--sidebar-muted); cursor: pointer;
   display: flex; align-items: center;
   transition: background 0.2s, color 0.2s;
 }
@@ -1004,7 +1198,10 @@ body.light-mode .home-mode-btn:hover {
 .spin { animation: spinAnim 0.9s linear infinite; }
 @keyframes spinAnim { to { transform: rotate(360deg); } }
 
-
+/* Hide mobile elements on desktop */
+.mobile-header, .mobile-menu-overlay {
+  display: none;
+}
 
 /* --- MOBILE RESPONSIVENESS (< 768px) --- */
 @media (max-width: 768px) {
@@ -1140,4 +1337,3 @@ body.light-mode .home-mode-btn:hover {
     padding: 0.5rem;
   }
 }
-
