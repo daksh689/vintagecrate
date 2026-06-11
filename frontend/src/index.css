@@ -1019,7 +1019,18 @@ body.light-mode .home-mode-btn:hover {
 /* --- MOBILE RESPONSIVENESS (< 768px) --- */
 @media (max-width: 768px) {
   /* Layout Toggles based on mobileTab */
-  .sidebar { display: none !important; }
+    .app:not(.mobile-tab-library) .sidebar { display: none !important; }
+  .app.mobile-tab-library .sidebar {
+    display: flex !important;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 75px;
+    width: 100vw; max-width: 100vw;
+    z-index: 100;
+    background: transparent;
+  }
+  .app.mobile-tab-library .sidebar-inner { width: 100%; border-right: none; background: transparent; }
+  .app.mobile-tab-library .sidebar-header { display: none; }
+  .app.mobile-tab-library .lib-tabs { display: none; }
+  .app.mobile-tab-library .track-list { flex: 1; padding: 1.5rem; }
   
   .app:not(.mobile-tab-player) .vinyl-wrap,
   .app:not(.mobile-tab-player) .np-card {
@@ -1169,3 +1180,4 @@ body.light-mode .home-mode-btn:hover {
     justify-content: center;
   }
 }
+

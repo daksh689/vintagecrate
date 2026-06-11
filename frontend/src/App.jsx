@@ -522,7 +522,7 @@ export default function App() {
                 </div>
 
                 {/* My Library Card */}
-                <div className="liked-card" onClick={() => setCurrentView('player')} style={{ cursor: 'pointer' }}>
+                <div className="liked-card" onClick={() => { setActiveTab('library'); setCurrentView('player'); }} style={{ cursor: 'pointer' }}>
                   <div className="icon-stack">
                     <div className="icon-stack-layer layer-3" style={{ background: 'rgba(61,43,31,0.25)' }} />
                     <div className="icon-stack-layer layer-2" style={{ background: 'rgba(61,43,31,0.5)' }} />
@@ -532,10 +532,23 @@ export default function App() {
                   </div>
                   <h2>My Library</h2>
                   <p>{tracks.length} tracks ready to play in your collection.</p>
-                  <button className="suggest-btn" style={{ background: '#3d2b1f' }} onClick={(e) => { e.stopPropagation(); setCurrentView('player'); }}>
+                  <button className="suggest-btn" style={{ background: '#3d2b1f' }} onClick={(e) => { e.stopPropagation(); setActiveTab('library'); setCurrentView('player'); }}>
                     <Play size={14} fill="currentColor" /> OPEN LIBRARY
                   </button>
                 </div>
+
+                {/* Custom Playlists */}
+                {Object.entries(playlists).map(([pName, pTracks]) => (
+                  <div key={pName} className="liked-card" onClick={() => { setActiveTab(`pl:${pName}`); setCurrentView('player'); }} style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="icon-stack">
+                      <div className="icon-stack-main" style={{ background: '#2d3748' }}>
+                        <ListMusic size={36} color="white" />
+                      </div>
+                    </div>
+                    <h2>{pName}</h2>
+                    <p>{pTracks.length} tracks</p>
+                  </div>
+                ))}
 
                 {/* Playlists Card */}
                 <div className="liked-card" style={{ cursor: 'pointer' }} onClick={() => {
