@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Search, Music, Loader2,
-         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat } from 'lucide-react';
+         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat, Shuffle } from 'lucide-react';
 import './index.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://vintagecrate.onrender.com/api';
@@ -66,6 +66,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'liked' | 'pl:NAME'
   const [isLightMode, setIsLightMode] = useState(false);
   const [isRepeat, setIsRepeat]   = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const audioRef = useRef(null);
@@ -289,17 +290,33 @@ export default function App() {
       return;
     }
     if (!activeList.length) return;
+    if (isShuffle) {
+      let idx = Math.floor(Math.random() * activeList.length);
+      if (activeList.length > 1 && current && trackKey(activeList[idx]) === trackKey(current)) {
+        idx = (idx + 1) % activeList.length;
+      }
+      playTrack(activeList[idx]);
+      return;
+    }
     const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : -1;
     playTrack(activeList[(idx + 1) % activeList.length]);
-  }, [activeList, current, playTrack, upNext, isRepeat]);
+  }, [activeList, current, playTrack, upNext, isRepeat, isShuffle]);
 
   useEffect(() => { nextRef.current = next; }, [next]);
 
   const prev = useCallback(() => {
     if (!activeList.length) return;
+    if (isShuffle) {
+      let idx = Math.floor(Math.random() * activeList.length);
+      if (activeList.length > 1 && current && trackKey(activeList[idx]) === trackKey(current)) {
+        idx = (idx + 1) % activeList.length;
+      }
+      playTrack(activeList[idx]);
+      return;
+    }
     const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : 0;
     playTrack(activeList[(idx - 1 + activeList.length) % activeList.length]);
-  }, [activeList, current, playTrack]);
+  }, [activeList, current, playTrack, isShuffle]);
 
   const performSearch = async (action, searchVal = null) => {
     const q = (searchVal !== null ? searchVal : query).trim();
@@ -799,6 +816,19 @@ export default function App() {
               </button>
               <button className="ctrl" onClick={next} disabled={!current}>
                 <SkipForward size={18} />
+              </button>
+              <button 
+                className="ctrl" 
+                onClick={() => {
+                  setIsShuffle(!isShuffle);
+                  setToast({ _msg: !isShuffle ? 'Shuffle Enabled' : 'Shuffle Disabled' });
+                  setTimeout(() => setToast(null), 3000);
+                }} 
+                disabled={!current}
+                title="Shuffle"
+                style={{ color: isShuffle ? 'var(--accent)' : 'var(--glass-text)' }}
+              >
+                <Shuffle size={14} />
               </button>
               <button 
                 className="ctrl" 
