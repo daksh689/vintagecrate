@@ -1041,36 +1041,53 @@ body.light-mode .home-mode-btn:hover {
   /* Mobile Header replacing sidebar header visually */
   .mobile-header {
     display: flex; align-items: center; gap: 1rem;
-    padding: 1rem 1.2rem;
-    background: linear-gradient(to bottom, rgba(10,10,10,0.9), transparent);
+    padding: 1.5rem 1.2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
     position: absolute; top: 0; left: 0; right: 0;
     z-index: 20;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
   .mobile-menu-btn {
     background: none; border: none; cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
-    background: var(--glass-bg);
+    background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
+    transition: background 0.2s;
+  }
+  .mobile-menu-btn:active {
+    background: rgba(255,255,255,0.2);
   }
   .mobile-brand-name {
-    color: white; font-weight: 700; font-size: 1.1rem; letter-spacing: 1px;
+    color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px;
   }
 
   /* Adjust main canvas layout */
   .canvas {
     padding-top: 5rem; /* space for mobile header */
-    padding-bottom: 90px; /* space for bottom mini-player */
+    padding-bottom: 100px; /* space for bottom mini-player */
   }
 
   .main-content {
     padding: 0 1rem;
   }
+  
+  /* Home Cards Fixes for Mobile */
+  .home-cards {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .liked-card, .player-card, .playlists-card {
+    width: 100%; /* Stretch to full width on mobile */
+    padding: 1.5rem;
+  }
 
   /* Re-position Immersive Search */
   .immersive-search-new {
-    top: 1rem; right: 1rem;
+    top: 5rem; right: 1rem;
   }
   .immersive-search-new.expanded {
     width: calc(100vw - 2rem);
@@ -1080,17 +1097,17 @@ body.light-mode .home-mode-btn:hover {
   /* Convert Now Playing Card to Mini-Player at bottom */
   .np-card-wrapper {
     position: fixed !important;
-    bottom: 0; left: 0; right: 0; top: auto !important;
-    width: 100%; height: 80px;
+    bottom: 1rem; left: 1rem; right: 1rem; top: auto !important;
+    width: calc(100% - 2rem); height: 75px;
     background: var(--glass-bg);
-    backdrop-filter: var(--glass-filter);
-    border-top: 1px solid var(--glass-border);
-    border-radius: 20px 20px 0 0;
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
     z-index: 100;
     display: flex; flex-direction: row;
     align-items: center;
     padding: 0 1rem;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   }
   .np-card-container {
     width: 100%; height: 100%;
@@ -1099,38 +1116,47 @@ body.light-mode .home-mode-btn:hover {
   }
 
   /* Hide elements not needed in mini-player */
-  .record-wrapper, .arm-wrapper, .np-card-header, .lyrics-btn, .like-btn, .volume-container {
+  .record-wrapper, .arm-wrapper, .np-card-header, .lyrics-btn, .like-btn, .volume-container, .time-info {
     display: none !important;
   }
 
   /* Restyle mini-player contents */
   .np-track-info {
     flex-direction: row; align-items: center; gap: 0.8rem;
-    margin: 0; flex: 1; min-width: 0;
+    margin: 0; flex: 1; min-width: 0; overflow: hidden;
   }
   .np-thumbnail-container {
-    width: 48px; height: 48px; min-height: 48px;
-    border-radius: 8px; margin: 0;
+    width: 44px; height: 44px; min-height: 44px;
+    border-radius: 8px; margin: 0; flex-shrink: 0;
   }
   .np-thumbnail {
     border-radius: 8px;
   }
   .np-text-info {
     align-items: flex-start; text-align: left;
+    overflow: hidden; white-space: nowrap; width: 100%;
   }
-  .np-song { font-size: 0.9rem; margin-bottom: 2px; }
-  .np-artist { font-size: 0.75rem; }
+  .np-song { 
+    font-size: 0.95rem; margin-bottom: 2px; font-weight: 700;
+    text-overflow: ellipsis; overflow: hidden; width: 100%;
+  }
+  .np-artist { 
+    font-size: 0.8rem; 
+    text-overflow: ellipsis; overflow: hidden; width: 100%;
+  }
 
   .np-controls {
     flex-direction: row;
-    margin: 0; gap: 0.5rem;
+    margin: 0; gap: 0.2rem;
+    flex-shrink: 0;
   }
-  .ctrl { padding: 0.6rem; }
-  .play-pause-btn { width: 44px; height: 44px; }
+  .ctrl { padding: 0.5rem; }
+  .play-pause-btn { width: 40px; height: 40px; }
 
   .progress-container {
-    position: absolute; top: -1px; left: 0; right: 0;
+    position: absolute; bottom: 0; left: 0; right: 0; top: auto;
     height: 3px; background: transparent;
+    border-radius: 0 0 16px 16px; overflow: hidden;
   }
   .progress-slider {
     height: 3px; margin: 0;
@@ -1139,9 +1165,14 @@ body.light-mode .home-mode-btn:hover {
   /* Track list grid */
   .pl-grid, .hero-tracks {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
   .track-row {
-    padding: 0.5rem;
+    padding: 0.8rem 0.5rem; /* Taller touch targets */
+    border-radius: 12px;
+  }
+  .track-row.active {
+    background: rgba(255,255,255,0.08);
   }
 }
 
