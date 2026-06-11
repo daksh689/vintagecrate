@@ -66,12 +66,15 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'liked' | 'pl:NAME'
   const [isLightMode, setIsLightMode] = useState(false);
   const [isRepeat, setIsRepeat]   = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const audioRef = useRef(null);
   const playIdRef = useRef(0);
   const ytPlayerRef = useRef(null);
   const ytReadyRef = useRef(false);
   const ytIntervalRef = useRef(null);
   const nextRef = useRef(null);
+  const acTimerRef = useRef(null);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -83,6 +86,25 @@ export default function App() {
   }, []);
 
   useEffect(() => { loadTracks(); }, []);
+
+  // Debounced autocomplete
+  useEffect(() => {
+    if (acTimerRef.current) clearTimeout(acTimerRef.current);
+    if (!query || query.trim().length < 2) {
+      setSuggestions([]); setShowSuggestions(false); return;
+    }
+    acTimerRef.current = setTimeout(async () => {
+      try {
+        const r = await fetch(`${API}/autocomplete?q=${encodeURIComponent(query.trim())}`);
+        if (r.ok) {
+          const data = await r.json();
+          setSuggestions(data);
+          setShowSuggestions(data.length > 0);
+        }
+      } catch { setSuggestions([]); setShowSuggestions(false); }
+    }, 400);
+    return () => { if (acTimerRef.current) clearTimeout(acTimerRef.current); };
+  }, [query]);
   useEffect(() => {
     try { localStorage.setItem('vintagecrate_liked', JSON.stringify(liked)); } catch {}
   }, [liked]);
@@ -515,15 +537,35 @@ export default function App() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               </button>
             </div>
-            <form className="search-form-row" onSubmit={(e) => { e.preventDefault(); performSearch('play'); }}>
-              <div className="search-wrap">
-                <Search size={12} color="var(--sidebar-muted)" />
-                <input
-                  placeholder="Search or paste YouTube link…"
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  disabled={searching}
-                />
+            <form className="search-form-row" onSubmit={(e) => { e.preventDefault(); setShowSuggestions(false); performSearch('play'); }}>
+              <div className="search-wrap-container">
+                <div className="search-wrap">
+                  <Search size={12} color="var(--sidebar-muted)" />
+                  <input
+                    placeholder="Search or paste YouTube link…"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    disabled={searching}
+                  />
+                </div>
+                {showSuggestions && (
+                  <div className="ac-dropdown">
+                    {suggestions.map((s, i) => (
+                      <div key={s.youtube_id || i} className="ac-item" onClick={() => {
+                        setShowSuggestions(false);
+                        setQuery('');
+                        setSuggestions([]);
+                        playTrack(s);
+                      }}>
+                        <div className="ac-info">
+                          <div className="ac-song">{s.song || getSong(s.title)}</div>
+                          <div className="ac-artist">{s.artist || getArtist(s.title)}{s.duration ? ` · ${s.duration}` : ''}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button className="go-btn" type="submit" disabled={searching || !query.trim()}>
                 {searching ? <Loader2 size={11} className="spin" /> : 'Go'}
@@ -610,9 +652,29 @@ export default function App() {
                  <span className="search-label">QUICK FIND</span>
                  <button type="button" className="close-btn" onClick={(e) => { e.stopPropagation(); setSearchExpanded(false); }}>✕</button>
                </div>
-               <div className="search-input-box">
-                 <Search size={14} color="var(--ink-muted)" />
-                 <input autoFocus placeholder="Find a song..." value={query} onChange={e=>setQuery(e.target.value)} disabled={searching} />
+               <div className="search-input-box-container">
+                 <div className="search-input-box">
+                   <Search size={14} color="var(--ink-muted)" />
+                   <input autoFocus placeholder="Find a song..." value={query} onChange={e=>setQuery(e.target.value)} onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} disabled={searching} />
+                 </div>
+                 {showSuggestions && (
+                   <div className="ac-dropdown ac-dropdown-immersive">
+                     {suggestions.map((s, i) => (
+                       <div key={s.youtube_id || i} className="ac-item" onClick={() => {
+                         setShowSuggestions(false);
+                         setQuery('');
+                         setSuggestions([]);
+                         setSearchExpanded(false);
+                         playTrack(s);
+                       }}>
+                         <div className="ac-info">
+                           <div className="ac-song">{s.song || getSong(s.title)}</div>
+                           <div className="ac-artist">{s.artist || getArtist(s.title)}{s.duration ? ` · ${s.duration}` : ''}</div>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 )}
                </div>
                <div className="search-actions">
                  <button type="submit" disabled={searching || !query.trim()}>{searching ? 'Searching...' : 'Play Now'}</button>

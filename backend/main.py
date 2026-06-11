@@ -138,6 +138,39 @@ def get_track(track_id: int):
         raise HTTPException(status_code=404, detail="Track not found")
     return track
 
+@app.get("/api/autocomplete")
+def autocomplete(q: str = ""):
+    """Return up to 6 song suggestions from YouTube Music for the given query."""
+    if not q or len(q.strip()) < 2:
+        return []
+    try:
+        from ytmusicapi import YTMusic
+        ytmusic = YTMusic()
+        results = ytmusic.search(q.strip(), filter="songs", limit=6)
+        suggestions = []
+        for r in results:
+            video_id = r.get("videoId")
+            if not video_id:
+                continue
+            title = r.get("title", q)
+            artists = r.get("artists", [])
+            artist = artists[0].get("name", "") if artists else ""
+            duration = r.get("duration", "")
+            suggestions.append({
+                "youtube_id": video_id,
+                "title": f"{artist} - {title}" if artist else title,
+                "artist": artist,
+                "song": title,
+                "duration": duration,
+                "is_youtube": True,
+            })
+            if len(suggestions) >= 6:
+                break
+        return suggestions
+    except Exception as e:
+        print(f"[autocomplete] Error: {e}")
+        return []
+
 @app.post("/api/search")
 def search_and_download(req: SearchRequest):
     # 1. Check local library first
