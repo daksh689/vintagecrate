@@ -88,33 +88,6 @@ export default function App() {
 
   useEffect(() => { loadTracks(); }, []);
 
-  // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Ignore shortcuts if the user is typing in an input
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
-      
-      if (e.code === 'Space') {
-        e.preventDefault();
-        toggle();
-      } else if (e.code === 'ArrowRight') {
-        e.preventDefault();
-        next();
-      } else if (e.code === 'ArrowLeft') {
-        e.preventDefault();
-        prev();
-      } else if (e.code === 'ArrowUp') {
-        e.preventDefault();
-        setVol(v => Math.min(1, v + 0.1));
-      } else if (e.code === 'ArrowDown') {
-        e.preventDefault();
-        setVol(v => Math.max(0, v - 0.1));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggle, next, prev]);
-
   // Debounced autocomplete
   useEffect(() => {
     if (acTimerRef.current) clearTimeout(acTimerRef.current);
@@ -344,6 +317,32 @@ export default function App() {
     const idx = current ? activeList.findIndex(t => trackKey(t) === trackKey(current)) : 0;
     playTrack(activeList[(idx - 1 + activeList.length) % activeList.length]);
   }, [activeList, current, playTrack, isShuffle]);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggle();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        next();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        prev();
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        setVol(v => Math.min(1, v + 0.1));
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        setVol(v => Math.max(0, v - 0.1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggle, next, prev]);
 
   const performSearch = async (action, searchVal = null) => {
     const q = (searchVal !== null ? searchVal : query).trim();
