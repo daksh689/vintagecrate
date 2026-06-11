@@ -1015,12 +1015,20 @@ body.light-mode .home-mode-btn:hover {
 .mobile-top-header, .mobile-content-area, .mobile-bottom-nav { display: none; }
 
 /* --- MOBILE RESPONSIVENESS (< 768px) --- */
+  /* --- MOBILE RESPONSIVENESS (< 768px) --- */
 @media (max-width: 768px) {
-  /* Hide desktop UI completely */
-  .sidebar, .main-content, .np-card-wrapper {
+  /* Layout Toggles based on mobileTab */
+  .sidebar { display: none !important; }
+  
+  .app:not(.mobile-tab-player) .vinyl-wrap,
+  .app:not(.mobile-tab-player) .np-card {
     display: none !important;
   }
   
+  .app.mobile-tab-player .main-content {
+    display: none !important;
+  }
+
   .app {
     flex-direction: column;
     padding: 0;
@@ -1028,158 +1036,117 @@ body.light-mode .home-mode-btn:hover {
     overflow-x: hidden;
   }
 
-  /* -- MOBILE HEADER (Top Bar) -- */
-  .mobile-top-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1.5rem 1.2rem;
-    position: sticky; top: 0; left: 0; right: 0;
-    z-index: 50;
-    background: transparent;
+  /* Main Content Adjustments for Bottom Nav */
+  .main-content {
+    padding: 1rem;
+    padding-bottom: 90px;
+    padding-top: 5rem; /* space for header */
   }
-  .mobile-brand-name {
-    color: var(--ink); font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;
+  .mobile-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between;
+    background: transparent; z-index: 50;
   }
-  .mobile-avatar img {
-    width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border);
+  .mobile-menu-btn { display: none; } /* Hide hamburger menu */
+  .mobile-brand-name { font-weight: 800; font-size: 1.1rem; color: var(--ink); }
+  
+  .mobile-header::after {
+    content: '';
+    width: 36px; height: 36px; border-radius: 50%;
+    background: url('https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff');
+    background-size: cover;
   }
 
   /* -- BOTTOM NAVIGATION -- */
   .mobile-bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    height: 70px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(25px);
+    height: 75px;
+    background: var(--glass-bg); backdrop-filter: blur(25px);
     border-top: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: space-around;
-    z-index: 1000;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 1000; padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .nav-item {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: none; border: none; gap: 4px;
     color: var(--sidebar-muted); font-size: 0.7rem; font-weight: 600;
-    cursor: pointer; padding: 0.5rem; transition: color 0.2s;
+    padding: 0.5rem; transition: color 0.2s;
   }
-  .nav-item.active {
-    color: var(--accent);
-  }
-  .nav-item svg {
-    stroke-width: 2.5;
-  }
+  .nav-item.active { color: var(--accent); }
 
-  /* -- MOBILE APP CONTAINER -- */
-  .mobile-content-area {
-    flex: 1;
-    width: 100vw;
-    min-height: 100vh;
-    padding-bottom: 90px; /* space for bottom nav */
-    display: flex; flex-direction: column;
+  /* -- MOBILE PLAYER VIEW (.vinyl-wrap & .np-card) -- */
+  .app.mobile-tab-player {
+    justify-content: flex-start;
+    align-items: center;
   }
+  .app.mobile-tab-player .vinyl-wrap {
+    position: relative; right: auto; top: auto; transform: none;
+    width: 280px; height: 280px; margin-top: 6rem; margin-bottom: 2rem;
+    flex-shrink: 0;
+  }
+  .app.mobile-tab-player .vinyl {
+    width: 280px; height: 280px;
+  }
+  .app.mobile-tab-player .arm-wrap {
+    transform: scale(0.6); top: -20px; right: -20px;
+  }
+  .app.mobile-tab-player .np-card {
+    position: relative; bottom: auto; left: auto; right: auto; width: calc(100% - 3rem);
+    background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+    box-shadow: 0 10px 30px var(--glass-shadow);
+    margin-bottom: 90px; flex-shrink: 0;
+  }
+  .app.mobile-tab-player .np-card-header {
+    flex-direction: column; align-items: center; text-align: center; gap: 0.5rem;
+  }
+  .app.mobile-tab-player .np-art, .app.mobile-tab-player .like-btn-np, .app.mobile-tab-player .eq-bars { display: none; }
+  .app.mobile-tab-player .np-song { font-size: 1.6rem; font-weight: 800; white-space: normal; }
+  .app.mobile-tab-player .np-by { font-size: 1rem; color: var(--sidebar-muted); }
+  
+  .app.mobile-tab-player .np-seek-section .seek-row { gap: 1rem; }
+  .app.mobile-tab-player .seek-bar { height: 6px; }
+  
+  .app.mobile-tab-player .np-controls-section .ctrl-row { gap: 2.5rem; }
+  .app.mobile-tab-player .ctrl-play {
+    width: 64px; height: 64px; background: #111; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  body.dark-mode .app.mobile-tab-player .ctrl-play { background: #eee; color: black; }
 
   /* -- MOBILE LIBRARY VIEW -- */
-  .mobile-library-view {
-    padding: 1rem;
-    display: flex; flex-direction: column;
-    animation: fadeUp 0.4s ease;
-  }
-  .lib-badge {
-    font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--accent); margin-bottom: 0.4rem; text-transform: uppercase;
-  }
-  .lib-title {
-    font-size: 2.2rem; font-weight: 900; color: var(--ink); margin-bottom: 1.5rem; letter-spacing: -1px;
-  }
+  .collection-view { animation: fadeUp 0.3s ease; padding-top: 1rem; }
+  .collection-view .lib-tabs { display: none; } /* Hide the desktop tabs, use bottom nav */
   
-  .liked-songs-card-mobile {
-    background: #0f172a;
-    border-radius: 20px; padding: 2rem 1.5rem;
-    display: flex; flex-direction: column; gap: 1rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    margin-bottom: 2rem;
+  .home-cards { flex-direction: column; gap: 1.5rem; }
+  .liked-card {
+    background: #0f172a !important; /* Dark Blue from Mockup */
+    border-radius: 24px; padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); min-height: 250px;
   }
-  .heart-icon-wrapper {
-    width: 70px; height: 70px;
-    background: rgba(255,255,255,0.1); border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .liked-info h2 { color: white; font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
-  .liked-info p { color: rgba(255,255,255,0.7); font-size: 0.9rem; line-height: 1.4; margin-bottom: 1.5rem; }
-  .shuffle-btn {
-    background: #0ea5e9; color: white; border: none; border-radius: 30px;
-    padding: 0.8rem 1.5rem; font-weight: 800; font-size: 0.8rem; letter-spacing: 1px;
-    display: flex; align-items: center; gap: 0.5rem;
-    width: fit-content;
-  }
-
-  .recently-played-section {
-    background: rgba(0,0,0,0.05); border-radius: 20px; padding: 1.5rem;
-  }
-  body.dark-mode .recently-played-section { background: rgba(255,255,255,0.03); }
+  .liked-card .icon-stack { display: none; } /* Hide desktop stacked hearts */
   
-  .section-header {
-    display: flex; align-items: center; gap: 0.5rem;
-    color: var(--sidebar-muted); font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 1.2rem;
+  /* Create the huge white heart icon */
+  .liked-card::before {
+    content: '?'; font-size: 3rem; color: white; display: flex; align-items: center; justify-content: center;
+    width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1.5rem;
   }
-  .recent-item {
-    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
-  }
-  .recent-icon {
-    width: 40px; height: 40px; background: rgba(0,0,0,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent);
-  }
-  body.dark-mode .recent-icon { background: rgba(255,255,255,0.05); }
-  .recent-text { flex: 1; }
-  .r-title { font-weight: 700; font-size: 0.95rem; color: var(--ink); margin-bottom: 2px; }
-  .r-sub { font-size: 0.75rem; color: var(--sidebar-muted); }
-  .view-history {
-    font-size: 0.75rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; margin-top: 1.5rem; cursor: pointer;
+  .liked-card h2 { color: white; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .liked-card p { color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.4; margin-bottom: 2rem; }
+  .liked-card .suggest-btn {
+    background: #0ea5e9; color: white; border-radius: 30px; padding: 1rem 1.5rem; font-weight: 800;
   }
 
-  /* -- MOBILE PLAYER VIEW -- */
-  .mobile-player-view {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    padding: 2rem 1.5rem;
-    animation: fadeUp 0.4s ease;
+  /* Hide Search stuff */
+  /* Make immersive search fill mobile screen */
+  .app.mobile-tab-search .immersive-search-new {
+    display: flex !important;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    border-radius: 0; z-index: 2000;
   }
-  .mobile-vinyl-container {
-    width: 280px; height: 280px;
-    position: relative; margin-top: 2rem; margin-bottom: 3rem;
+  .app.mobile-tab-search .search-expanded-view {
+    height: 100%; padding-top: 2rem;
   }
-  .mobile-vinyl-container .record-wrapper {
-    position: absolute; top: 0; left: 0; transform: scale(0.85); transform-origin: center center;
-  }
-  .mobile-vinyl-container .arm-wrapper {
-    position: absolute; top: -10px; right: -20px; transform: scale(0.8); transform-origin: top right;
-  }
-  
-  .mobile-player-text {
-    text-align: center; margin-bottom: 2rem; width: 100%;
-  }
-  .m-song { font-size: 1.6rem; font-weight: 800; color: var(--ink); margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .m-artist { font-size: 1rem; color: var(--sidebar-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .mobile-controls-card {
-    width: 100%; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-    border-radius: 24px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;
-    box-shadow: 0 10px 30px var(--glass-shadow);
-  }
-  
-  .m-progress-row { display: flex; align-items: center; gap: 0.8rem; width: 100%; }
-  .m-time { font-size: 0.7rem; font-weight: 600; color: var(--sidebar-muted); width: 35px; text-align: center; }
-  .m-progress-bar { flex: 1; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; position: relative; cursor: pointer; }
-  body.dark-mode .m-progress-bar { background: rgba(255,255,255,0.1); }
-  .m-progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--accent); border-radius: 2px; }
-
-  .m-controls-row { display: flex; align-items: center; justify-content: center; gap: 2rem; width: 100%; }
-  .m-ctrl { background: none; border: none; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .m-play-btn {
-    width: 60px; height: 60px; border-radius: 50%; background: #111; color: white;
-    display: flex; align-items: center; justify-content: center; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  }
-  body.dark-mode .m-play-btn { background: #eee; color: black; box-shadow: 0 8px 20px rgba(255,255,255,0.1); }
-
-  .m-volume-row { display: flex; align-items: center; justify-content: center; gap: 1rem; width: 100%; padding: 0 1rem; }
-  .m-vol-slider { flex: 1; max-width: 150px; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; position: relative; cursor: pointer; }
-  body.dark-mode .m-vol-slider { background: rgba(255,255,255,0.1); }
-  .m-vol-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--sidebar-muted); border-radius: 2px; }
-  .m-vol-thumb { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; border-radius: 50%; background: var(--ink); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-
+  .app.mobile-tab-search .close-btn { display: none; }
 }
