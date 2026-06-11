@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Search, Music, Loader2,
-         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat, Shuffle } from 'lucide-react';
+         Volume2, VolumeX, CheckCircle, ChevronRight, ChevronLeft, Plus, PanelLeftClose, Heart, Sun, Moon, Sparkles, Repeat, Shuffle, Menu } from 'lucide-react';
 import './index.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://vintagecrate.onrender.com/api';
@@ -67,6 +67,7 @@ export default function App() {
   const [isLightMode, setIsLightMode] = useState(false);
   const [isRepeat, setIsRepeat]   = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const audioRef = useRef(null);
@@ -566,8 +567,19 @@ export default function App() {
       {/* Hidden YouTube player for streaming YouTube tracks */}
       <div id="yt-player-hidden" style={{ position: 'fixed', top: '-9999px', left: '-9999px', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }} />
 
+      {/* ── MOBILE HEADER (Visible only on mobile) ── */}
+      <div className="mobile-header">
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu size={24} color="var(--ink)" />
+        </button>
+        <span className="mobile-brand-name">VintageCrate</span>
+      </div>
+
+      {/* ── MOBILE MENU OVERLAY ── */}
+      {isMobileMenuOpen && <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)} />}
+
       {/* ── SIDEBAR ── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-inner">
           <div className="sidebar-header">
             <div className="brand">
