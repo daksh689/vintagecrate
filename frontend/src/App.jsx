@@ -88,6 +88,33 @@ export default function App() {
 
   useEffect(() => { loadTracks(); }, []);
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore shortcuts if the user is typing in an input
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggle();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        next();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        prev();
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        setVol(v => Math.min(1, v + 0.1));
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        setVol(v => Math.max(0, v - 0.1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggle, next, prev]);
+
   // Debounced autocomplete
   useEffect(() => {
     if (acTimerRef.current) clearTimeout(acTimerRef.current);
