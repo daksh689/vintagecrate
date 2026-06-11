@@ -853,7 +853,8 @@ export default function App() {
             )}
           </div>
 
-          <div className="np-seek-section">
+          <div className="np-card-controls">
+            <div className="np-seek-section">
             <div className="seek-row">
               <span className="ts">{fmt(progress)}</span>
               <div className="seek-bar" onClick={handleSeek}>
@@ -925,6 +926,8 @@ export default function App() {
             </div>
           </div>
 
+        </div>
+
           {playing && !buffering && (
             <div className="now-playing-badge">
               <div className="npb-dot" /> Now Playing
@@ -983,4 +986,7 @@ export default function App() {
 
 
 }
+
+
+
 
